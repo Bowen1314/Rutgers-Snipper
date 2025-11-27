@@ -1,6 +1,5 @@
-# Rutgers Snipper 部署指南 [English](README_EN.md)
+# Rutgers Snipper 部署指南 | [English README](README_EN.md)
 
-**中文** |
 
 这是一个用于监控 Rutgers 课程状态的 Web 应用程序，包含 Python (FastAPI) 后端和 React (Vite) 前端。当监控的课程 Section 开启时，系统会播放声音提醒。
 

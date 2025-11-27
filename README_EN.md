@@ -1,6 +1,5 @@
 # Rutgers Snipper Deployment Guide | [中文文档](README.md) 
 
-**English**
 
 This is a Web application for monitoring Rutgers course status, consisting of a Python (FastAPI) backend and a React (Vite) frontend. When a monitored course section opens, the system will play a sound notification.
 
