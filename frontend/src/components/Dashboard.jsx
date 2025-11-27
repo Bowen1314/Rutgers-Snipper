@@ -5,8 +5,10 @@ import { Activity, Plus, Trash2, Play, Square, Search, AlertCircle, CheckCircle,
 import Settings from './Settings';
 import ConfirmModal from './ConfirmModal';
 import { useToast } from '../contexts/ToastContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Dashboard = () => {
+    const { t, language, toggleLanguage } = useLanguage();
     const [status, setStatus] = useState({ indices: [], courses: [], monitoring: false, last_scan_time: null, scan_interval: 30 });
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
@@ -24,7 +26,7 @@ const Dashboard = () => {
             console.log("Status update:", res.data);
             setStatus(res.data);
         } catch (error) {
-            console.error("无法获取状态", error);
+            console.error(t('fetchStatusFailed'), error);
         }
     };
 
@@ -41,9 +43,9 @@ const Dashboard = () => {
             await addTarget(input);
             setInput('');
             await fetchStatus();
-            addToast(`已添加监控目标: ${input}`, 'success');
+            addToast(`${t('addedTarget')}${input}`, 'success');
         } catch (error) {
-            addToast("添加失败，请检查输入", 'error');
+            addToast(t('addFailed'), 'error');
         } finally {
             setLoading(false);
         }
@@ -59,9 +61,9 @@ const Dashboard = () => {
         try {
             await removeTarget(targetToRemove);
             await fetchStatus();
-            addToast(`已移除: ${targetToRemove}`, 'success');
+            addToast(`${t('removed')}${targetToRemove}`, 'success');
         } catch (error) {
-            addToast("移除失败", 'error');
+            addToast(t('removeFailed'), 'error');
         }
     };
 
@@ -69,18 +71,18 @@ const Dashboard = () => {
         try {
             if (status.monitoring) {
                 await stopMonitoring();
-                addToast("监控已停止", 'info');
+                addToast(t('monitoringStopped'), 'info');
             } else {
                 if (status.indices.length === 0 && status.courses.length === 0) {
-                    addToast("监控列表为空，请先添加课程", 'error');
+                    addToast(t('listEmpty'), 'error');
                     return;
                 }
                 await startMonitoring();
-                addToast("监控已启动", 'success');
+                addToast(t('monitoringStarted'), 'success');
             }
             await fetchStatus();
         } catch (error) {
-            addToast("操作失败", 'error');
+            addToast(t('operationFailed'), 'error');
         }
     };
 
@@ -95,14 +97,14 @@ const Dashboard = () => {
                                 <Activity className="w-6 h-6 text-white" />
                             </div>
                             <span className="text-xl font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
-                                Rutgers Sniper
+                                {t('appTitle')}
                             </span>
                         </div>
                         <div className="flex items-center gap-4">
                             {status.last_scan_time && (
                                 <div className="hidden md:flex items-center gap-2 text-sm text-slate-400 bg-slate-800/50 px-3 py-1.5 rounded-full border border-slate-700">
                                     <Clock className="w-4 h-4" />
-                                    <span>上次扫描: {status.last_scan_time}</span>
+                                    <span>{t('lastScan')}{status.last_scan_time}</span>
                                 </div>
                             )}
 
@@ -111,13 +113,20 @@ const Dashboard = () => {
                                 : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
                                 } `}>
                                 <span className={`w-2 h-2 rounded-full ${status.monitoring ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'} `} />
-                                {status.monitoring ? '正在监控' : '已停止'}
+                                {status.monitoring ? t('monitoring') : t('stopped')}
                             </div>
+
+                            <button
+                                onClick={toggleLanguage}
+                                className="px-3 py-1.5 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition-colors"
+                            >
+                                {language === 'zh' ? 'EN' : '中'}
+                            </button>
 
                             <button
                                 onClick={() => setShowSettings(true)}
                                 className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
-                                title="设置"
+                                title={t('settings')}
                             >
                                 <SettingsIcon className="w-5 h-5" />
                             </button>
@@ -131,7 +140,7 @@ const Dashboard = () => {
                                     } `}
                             >
                                 {status.monitoring ? <Square className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
-                                {status.monitoring ? '停止监控' : '开始监控'}
+                                {status.monitoring ? t('stopMonitoring') : t('startMonitoring')}
                             </button>
                         </div>
                     </div>
@@ -150,7 +159,7 @@ const Dashboard = () => {
                                     type="text"
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
-                                    placeholder="输入课程代码 (如 07:965:211) 或 Index (如 10193)"
+                                    placeholder={t('inputPlaceholder')}
                                     className="w-full bg-transparent border-none focus:ring-0 text-slate-100 placeholder-slate-500"
                                     onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
                                 />
@@ -161,7 +170,7 @@ const Dashboard = () => {
                                 className="px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 <Plus className="w-4 h-4" />
-                                {loading ? '添加中...' : '添加'}
+                                {loading ? t('adding') : t('add')}
                             </button>
                         </div>
                     </div>
@@ -173,7 +182,7 @@ const Dashboard = () => {
                         <div className="flex items-center justify-between mb-2">
                             <h2 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
                                 <span className="w-1 h-6 bg-indigo-500 rounded-full"></span>
-                                Index 监控列表
+                                {t('indexWatchlist')}
                                 <span className="text-xs font-normal text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700">
                                     {status.indices.length}
                                 </span>
@@ -185,7 +194,7 @@ const Dashboard = () => {
                                 <div className="w-12 h-12 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-3">
                                     <AlertCircle className="w-6 h-6 text-slate-500" />
                                 </div>
-                                <p className="text-slate-400">暂无 Index 监控项</p>
+                                <p className="text-slate-400">{t('noIndexItems')}</p>
                             </div>
                         ) : (
                             <div className="grid gap-3">
@@ -208,7 +217,7 @@ const Dashboard = () => {
                                                 <button
                                                     onClick={() => confirmRemove(item.index)}
                                                     className="text-slate-500 hover:text-rose-400 transition-colors p-1 hover:bg-rose-500/10 rounded"
-                                                    title="移除"
+                                                    title={t('remove')}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
@@ -225,7 +234,7 @@ const Dashboard = () => {
                         <div className="flex items-center justify-between mb-2">
                             <h2 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
                                 <span className="w-1 h-6 bg-cyan-500 rounded-full"></span>
-                                课程监控列表
+                                {t('courseWatchlist')}
                                 <span className="text-xs font-normal text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full border border-slate-700">
                                     {status.courses.length}
                                 </span>
@@ -237,7 +246,7 @@ const Dashboard = () => {
                                 <div className="w-12 h-12 bg-slate-700/50 rounded-full flex items-center justify-center mx-auto mb-3">
                                     <AlertCircle className="w-6 h-6 text-slate-500" />
                                 </div>
-                                <p className="text-slate-400">暂无课程监控项</p>
+                                <p className="text-slate-400">{t('noCourseItems')}</p>
                             </div>
                         ) : (
                             <div className="grid gap-3">
@@ -251,7 +260,7 @@ const Dashboard = () => {
                                             <button
                                                 onClick={() => confirmRemove(item.code)}
                                                 className="text-slate-500 hover:text-rose-400 transition-colors p-1 hover:bg-rose-500/10 rounded"
-                                                title="移除"
+                                                title={t('remove')}
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
@@ -273,7 +282,7 @@ const Dashboard = () => {
                                                 ))
                                             ) : (
                                                 <div className="text-center text-slate-500 text-sm py-2">
-                                                    等待数据...
+                                                    {t('waitingForData')}
                                                 </div>
                                             )}
                                         </div>
@@ -295,9 +304,9 @@ const Dashboard = () => {
                 isOpen={confirmOpen}
                 onClose={() => setConfirmOpen(false)}
                 onConfirm={handleRemove}
-                title="确认移除"
-                message={`您确定要停止监控 ${targetToRemove} 吗？此操作无法撤销。`}
-                confirmText="移除"
+                title={t('confirmRemove')}
+                message={t('confirmRemoveMessage', { target: targetToRemove })}
+                confirmText={t('remove')}
                 isDangerous={true}
             />
         </div>
@@ -312,7 +321,7 @@ const StatusBadge = ({ status }) => {
         return (
             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
                 <CheckCircle className="w-3.5 h-3.5" />
-                开启
+                <TranslatedStatus status="open" />
             </span>
         );
     }
@@ -321,7 +330,7 @@ const StatusBadge = ({ status }) => {
         return (
             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
                 <XCircle className="w-3.5 h-3.5" />
-                关闭
+                <TranslatedStatus status="closed" />
             </span>
         );
     }
@@ -331,6 +340,11 @@ const StatusBadge = ({ status }) => {
             {status}
         </span>
     );
+};
+
+const TranslatedStatus = ({ status }) => {
+    const { t } = useLanguage();
+    return t(status) || status;
 };
 
 export default Dashboard;

@@ -1,7 +1,12 @@
 import React from 'react';
 import { AlertTriangle, X } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
-const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText = "确认", cancelText = "取消", isDangerous = false }) => {
+const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText, cancelText, isDangerous = false }) => {
+    const { t } = useLanguage();
+    const finalConfirmText = confirmText || t('confirm');
+    const finalCancelText = cancelText || t('cancel');
+
     if (!isOpen) return null;
 
     return (
@@ -25,7 +30,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText 
                         onClick={onClose}
                         className="px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors font-medium text-sm"
                     >
-                        {cancelText}
+                        {finalCancelText}
                     </button>
                     <button
                         onClick={() => {
@@ -33,15 +38,15 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, confirmText 
                             onClose();
                         }}
                         className={`px-4 py-2 text-white rounded-lg font-medium text-sm transition-colors shadow-lg ${isDangerous
-                                ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/20'
-                                : 'bg-indigo-500 hover:bg-indigo-600 shadow-indigo-500/20'
+                            ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/20'
+                            : 'bg-indigo-500 hover:bg-indigo-600 shadow-indigo-500/20'
                             }`}
                     >
-                        {confirmText}
+                        {finalConfirmText}
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

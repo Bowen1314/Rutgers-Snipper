@@ -1,5 +1,7 @@
 # Rutgers Snipper 部署指南
 
+**中文** | [English](README_EN.md)
+
 这是一个用于监控 Rutgers 课程状态的 Web 应用程序，包含 Python (FastAPI) 后端和 React (Vite) 前端。当监控的课程 Section 开启时，系统会播放声音提醒。
 
 ## 📋 环境要求
@@ -68,6 +70,9 @@ chmod +x run.sh  # 如果是第一次运行，给予执行权限
 
 4. **查看详情**:
    - 课程卡片会显示该课程下所有的 Section 及其状态（Open/Closed）和讲师信息。
+
+5. **中英文切换**:
+   - 点击顶部导航栏的 "CN/EN" 按钮可在中文和英文界面之间切换。
 
 ## ⚠️ 常见问题
 

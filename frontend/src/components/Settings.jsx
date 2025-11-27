@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { X, Save } from 'lucide-react';
 import { updateSettings } from '../api';
 import { useToast } from '../contexts/ToastContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Settings = ({ isOpen, onClose, currentInterval, onUpdate }) => {
+    const { t } = useLanguage();
     const [interval, setInterval] = useState(currentInterval);
     const [loading, setLoading] = useState(false);
     const { addToast } = useToast();
@@ -15,10 +17,10 @@ const Settings = ({ isOpen, onClose, currentInterval, onUpdate }) => {
         try {
             await updateSettings(parseInt(interval));
             onUpdate();
-            addToast("设置已保存", 'success');
+            addToast(t('settingsSaved'), 'success');
             onClose();
         } catch (error) {
-            addToast("设置更新失败", 'error');
+            addToast(t('settingsUpdateFailed'), 'error');
         } finally {
             setLoading(false);
         }
@@ -28,7 +30,7 @@ const Settings = ({ isOpen, onClose, currentInterval, onUpdate }) => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100]">
             <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 w-full max-w-md shadow-2xl">
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold text-slate-100">设置</h2>
+                    <h2 className="text-xl font-bold text-slate-100">{t('settings')}</h2>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-200">
                         <X className="w-5 h-5" />
                     </button>
@@ -37,7 +39,7 @@ const Settings = ({ isOpen, onClose, currentInterval, onUpdate }) => {
                 <div className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-300 mb-2">
-                            扫描间隔 (秒)
+                            {t('scanInterval')}
                         </label>
                         <input
                             type="number"
@@ -47,7 +49,7 @@ const Settings = ({ isOpen, onClose, currentInterval, onUpdate }) => {
                             className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         />
                         <p className="text-xs text-slate-500 mt-1">
-                            设置后台检查课程状态的频率。建议不要低于 5 秒以避免被封禁。
+                            {t('intervalHint')}
                         </p>
                     </div>
 
@@ -56,7 +58,7 @@ const Settings = ({ isOpen, onClose, currentInterval, onUpdate }) => {
                             onClick={onClose}
                             className="px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
                         >
-                            取消
+                            {t('cancel')}
                         </button>
                         <button
                             onClick={handleSave}
@@ -64,7 +66,7 @@ const Settings = ({ isOpen, onClose, currentInterval, onUpdate }) => {
                             className="flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                         >
                             <Save className="w-4 h-4" />
-                            {loading ? '保存中...' : '保存'}
+                            {loading ? t('saving') : t('save')}
                         </button>
                     </div>
                 </div>
