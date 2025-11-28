@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getStatus, addTarget, removeTarget, startMonitoring, stopMonitoring } from '../api';
-import { Activity, Plus, Trash2, Play, Square, Search, AlertCircle, CheckCircle, XCircle, Settings as SettingsIcon, Clock } from 'lucide-react';
+import { Activity, Plus, Trash2, Play, Square, Search, AlertCircle, CheckCircle, XCircle, Settings as SettingsIcon, Clock, Timer } from 'lucide-react';
 import Settings from './Settings';
 import ConfirmModal from './ConfirmModal';
 import { useToast } from '../contexts/ToastContext';
@@ -10,6 +10,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 const Dashboard = () => {
     const { t, language, toggleLanguage } = useLanguage();
     const [status, setStatus] = useState({ indices: [], courses: [], monitoring: false, last_scan_time: null, scan_interval: 30 });
+    const [timeLeft, setTimeLeft] = useState(30);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
@@ -25,6 +26,15 @@ const Dashboard = () => {
             const res = await getStatus();
             console.log("Status update:", res.data);
             setStatus(res.data);
+            if (res.data.monitoring) {
+                // Reset timer when we get a fresh status update
+                // But only if last_scan_time actually changed, or just sync it roughly
+                // Actually, simplest is to reset to interval whenever we fetch, 
+                // but if we fetch every 3s, it might keep resetting.
+                // Better: The backend scans every N seconds. 
+                // We should just countdown locally. 
+                // When status.last_scan_time changes, we know a scan happened.
+            }
         } catch (error) {
             console.error(t('fetchStatusFailed'), error);
         }
@@ -36,8 +46,59 @@ const Dashboard = () => {
         return () => clearInterval(interval);
     }, []);
 
+    // Countdown Timer Logic
+    useEffect(() => {
+        if (!status.monitoring) {
+            setTimeLeft(status.scan_interval);
+            return;
+        }
+
+        const timer = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 0) return 0;
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [status.monitoring]);
+
+    // Reset timer when scan_interval updates (regardless of monitoring status)
+    useEffect(() => {
+        setTimeLeft(status.scan_interval);
+    }, [status.scan_interval]);
+
+    // Reset timer when last_scan_time updates (only if monitoring)
+    useEffect(() => {
+        if (status.monitoring) {
+            setTimeLeft(status.scan_interval);
+        }
+    }, [status.last_scan_time]);
+
+
+
     const handleAdd = async () => {
         if (!input) return;
+
+        // Validation Logic
+        if (/[a-zA-Z]/.test(input)) {
+            // If it contains letters, it must be a course code (but user said course code cannot have letters? Wait, user said "If it is course code, it cannot have letters" - usually course codes like 198:111 don't have letters. But sometimes they might? The user requirement is strict: "If course code, cannot have letters". And "Index code must be pure numbers". So basically NO letters allowed at all.)
+            // Re-reading user request: "如果是course code 就不能有字母" (If it's course code, it cannot have letters).
+            // "index code 必须大于四 并且是纯数字" (Index code must be > 4 and pure numbers).
+            // So effectively, NO letters are allowed in either case.
+            addToast(t('validationNoLetters'), 'error');
+            return;
+        }
+
+        // Check if it's an Index (no colons usually implies index, or just check if it's pure numbers)
+        const isIndex = /^\d+$/.test(input);
+        if (isIndex) {
+            if (input.length <= 4) {
+                addToast(t('validationIndex'), 'error');
+                return;
+            }
+        }
+
         setLoading(true);
         try {
             await addTarget(input);
@@ -108,6 +169,13 @@ const Dashboard = () => {
                                 </div>
                             )}
 
+                            {status.monitoring && (
+                                <div className="hidden md:flex items-center gap-2 text-sm text-indigo-300 bg-indigo-500/10 px-3 py-1.5 rounded-full border border-indigo-500/20 shadow-[0_0_10px_rgba(99,102,241,0.1)]">
+                                    <Timer className="w-4 h-4 animate-pulse" />
+                                    <span className="font-mono font-bold">{t('nextScan', { seconds: timeLeft })}</span>
+                                </div>
+                            )}
+
                             <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium border ${status.monitoring
                                 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                                 : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
@@ -152,7 +220,7 @@ const Dashboard = () => {
                 <div className="mb-12">
                     <div className="relative max-w-2xl mx-auto group">
                         <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-200"></div>
-                        <div className="relative flex bg-slate-800 rounded-xl p-2 shadow-2xl border border-slate-700">
+                        <div className="relative flex bg-slate-800 rounded-xl p-2 shadow-2xl border border-slate-700 transition-all duration-300 focus-within:ring-2 focus-within:ring-indigo-500/50 focus-within:border-indigo-500 focus-within:shadow-[0_0_20px_rgba(99,102,241,0.3)]">
                             <div className="flex-1 flex items-center px-4 gap-3">
                                 <Search className="w-5 h-5 text-slate-400" />
                                 <input
@@ -160,7 +228,7 @@ const Dashboard = () => {
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     placeholder={t('inputPlaceholder')}
-                                    className="w-full bg-transparent border-none focus:ring-0 text-slate-100 placeholder-slate-500"
+                                    className="w-full bg-transparent border-none focus:ring-0 outline-none text-slate-100 placeholder-slate-500"
                                     onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
                                 />
                             </div>

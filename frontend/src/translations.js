@@ -43,7 +43,14 @@ export const translations = {
         // Confirm Modal
         confirmRemove: "确认移除",
         confirmRemoveMessage: "您确定要停止监控 {target} 吗？此操作无法撤销。",
-        confirm: "确认"
+        confirm: "确认",
+
+        // Validation
+        validationIndex: "Index 必须是纯数字且大于4位",
+        validationNoLetters: "输入不能包含字母",
+
+        // Timer
+        nextScan: "下次扫描: {seconds}秒"
     },
     en: {
         // Dashboard
@@ -89,6 +96,13 @@ export const translations = {
         // Confirm Modal
         confirmRemove: "Confirm Remove",
         confirmRemoveMessage: "Are you sure you want to stop monitoring {target}? This action cannot be undone.",
-        confirm: "Confirm"
+        confirm: "Confirm",
+
+        // Validation
+        validationIndex: "Index must be at least 5 digits and numbers only",
+        validationNoLetters: "Input cannot contain letters",
+
+        // Timer
+        nextScan: "Next scan: {seconds}s"
     }
 };
